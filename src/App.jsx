@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const c = {
   bg: "#f4f8f2",
@@ -158,9 +158,47 @@ export default function DebtEscapePlan() {
   const meta = getStepMeta(step);
   const progress = (currentStep / STEPS.length) * 100;
 
+  // Check if returning from successful Stripe payment
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      const savedAnswers = sessionStorage.getItem('debtAnswers');
+      const savedDebts = sessionStorage.getItem('debtList');
+      if (savedAnswers && savedDebts) {
+        const parsedDebts = JSON.parse(savedDebts);
+        setDebts(parsedDebts);
+        generatePlan(JSON.parse(savedAnswers), parsedDebts);
+        sessionStorage.removeItem('debtAnswers');
+        sessionStorage.removeItem('debtList');
+        window.history.replaceState({}, '', '/');
+      }
+    }
+    if (params.get('cancelled') === 'true') {
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
+
+  const handlePayment = async (finalAnswers, finalDebts) => {
+    setLoading(true);
+    sessionStorage.setItem('debtAnswers', JSON.stringify(finalAnswers));
+    sessionStorage.setItem('debtList', JSON.stringify(finalDebts));
+    try {
+      const res = await fetch('/api/checkout', { method: 'POST' });
+      const data = await res.json();
+      window.location.href = data.url;
+    } catch (e) {
+      setError("Payment failed to load. Please try again.");
+      setLoading(false);
+    }
+  };
+
   const advance = (newAnswers) => {
-    if (currentStep < STEPS.length - 1) { setCurrentStep(currentStep + 1); setCurrentValue(""); }
-    else generatePlan(newAnswers);
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep(currentStep + 1);
+      setCurrentValue("");
+    } else {
+      handlePayment(newAnswers, debts);
+    }
   };
 
   const handleNext = () => {
@@ -183,26 +221,26 @@ export default function DebtEscapePlan() {
     setAnswers(newAnswers);
     setCurrentValue("");
     if (currentStep < STEPS.length - 1) setCurrentStep(currentStep + 1);
-    else generatePlan(newAnswers);
+    else handlePayment(newAnswers, debts);
   };
 
-  const shouldRecommendReach = () => {
-    const hasHighInterest = debts.some(d => parseFloat(d.apr) >= 15);
-    const totalDebt = debts.reduce((sum, d) => sum + (parseFloat(d.balance) || 0), 0);
+  const shouldRecommendReach = (debtList) => {
+    const hasHighInterest = debtList.some(d => parseFloat(d.apr) >= 15);
+    const totalDebt = debtList.reduce((sum, d) => sum + (parseFloat(d.balance) || 0), 0);
     return hasHighInterest || totalDebt > 5000;
   };
 
-  const shouldRecommendNDR = (data) => {
-    const totalDebt = debts.reduce((sum, d) => sum + (parseFloat(d.balance) || 0), 0);
+  const shouldRecommendNDR = (data, debtList) => {
+    const totalDebt = debtList.reduce((sum, d) => sum + (parseFloat(d.balance) || 0), 0);
     const poorCredit = data.creditScore?.includes("Poor") || data.creditScore?.includes("Fair");
     return totalDebt > 7500 || poorCredit;
   };
 
-  const generatePlan = async (data) => {
+  const generatePlan = async (data, debtList) => {
     setLoading(true);
     setError(null);
     try {
-      const totalDebt = debts.reduce((sum, d) => sum + (parseFloat(d.balance) || 0), 0);
+      const totalDebt = debtList.reduce((sum, d) => sum + (parseFloat(d.balance) || 0), 0);
       const surplus = (parseFloat(data.income) || 0) - (parseFloat(data.expenses) || 0) - (parseFloat(data.minPayments) || 0);
       const monthsToFreedom = surplus > 0 ? Math.ceil(totalDebt / surplus) : null;
       const freeDate = monthsToFreedom ? new Date(Date.now() + monthsToFreedom * 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : null;
@@ -281,7 +319,7 @@ Remember: every single section must reference their specific numbers, debts, and
       const result = await response.json();
       const text = result.content?.map((b) => b.text || "").join("") || "";
       setPlan(text);
-      setParsedData({ ...data, totalDebt, surplus, freeDate });
+      setParsedData({ ...data, totalDebt, surplus, freeDate, debtList });
     } catch (e) {
       setError("Something went wrong generating your plan. Please try again.");
     }
@@ -326,8 +364,8 @@ Remember: every single section must reference their specific numbers, debts, and
     return currentValue.trim().length > 0;
   };
 
-  const showReach = parsedData && shouldRecommendReach();
-  const showNDR = parsedData && shouldRecommendNDR(parsedData);
+  const showReach = parsedData && shouldRecommendReach(parsedData.debtList || []);
+  const showNDR = parsedData && shouldRecommendNDR(parsedData, parsedData.debtList || []);
 
   return (
     <div style={{ minHeight: "100vh", background: c.bg, color: c.text, fontFamily: "'Georgia', 'Times New Roman', serif" }}>
@@ -413,10 +451,17 @@ Remember: every single section must reference their specific numbers, debts, and
               )}
             </div>
 
+            {/* Payment notice on last step */}
+            {currentStep === STEPS.length - 1 && (
+              <div style={{ background: c.goldLight, border: `1px solid #e8d090`, borderRadius: 8, padding: "12px 16px", marginBottom: 12, textAlign: "center" }}>
+                <p style={{ margin: 0, fontSize: 14, color: c.gold }}>🔒 Your personalized plan is <strong>$5</strong> — a one-time payment</p>
+              </div>
+            )}
+
             {step.type !== "select" && (
               <button onClick={handleNext} disabled={!canContinue()}
                 style={{ width: "100%", padding: "16px", background: canContinue() ? `linear-gradient(135deg, ${c.accentDark}, ${c.accent})` : c.border, color: canContinue() ? "#fff" : c.textMuted, border: "none", borderRadius: 8, fontSize: 15, fontFamily: "'Georgia', serif", fontWeight: 700, letterSpacing: "0.05em", cursor: canContinue() ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
-                {currentStep < STEPS.length - 1 ? "Continue →" : "Generate My Plan →"}
+                {currentStep < STEPS.length - 1 ? "Continue →" : "Get My Plan for $5 →"}
               </button>
             )}
 
@@ -462,7 +507,6 @@ Remember: every single section must reference their specific numbers, debts, and
               </button>
             </div>
 
-            {/* Debt-free date banner */}
             {parsedData?.freeDate && (
               <div style={{ background: `linear-gradient(135deg, ${c.accentDark}, ${c.accent})`, borderRadius: 12, padding: "22px 26px", marginBottom: 16, textAlign: "center", color: "#fff" }}>
                 <p style={{ margin: "0 0 4px", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.8 }}>Your estimated debt-free date</p>
@@ -471,7 +515,6 @@ Remember: every single section must reference their specific numbers, debts, and
               </div>
             )}
 
-            {/* Plan sections */}
             {formatPlan(plan).map(({ header, body, key }) => (
               <div key={key} className="plan-card" style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: "28px 28px", marginBottom: 14, borderLeft: `4px solid ${c.accent}`, boxShadow: `0 2px 10px ${c.shadow}` }}>
                 <h3 style={{ fontSize: 17, fontWeight: 700, color: c.text, margin: "0 0 16px" }}>{header}</h3>
@@ -479,7 +522,6 @@ Remember: every single section must reference their specific numbers, debts, and
               </div>
             ))}
 
-            {/* Recommended resources */}
             {(showReach || showNDR) && (
               <div style={{ marginTop: 28 }}>
                 <div style={{ textAlign: "center", marginBottom: 18 }}>
@@ -509,7 +551,6 @@ Remember: every single section must reference their specific numbers, debts, and
               </div>
             )}
 
-            {/* Footer */}
             <div style={{ background: c.accentLight, border: `1px solid ${c.border}`, borderRadius: 10, padding: "18px 22px", marginTop: 20, textAlign: "center" }}>
               <p style={{ color: c.textLight, fontSize: 13, margin: "0 0 12px", lineHeight: 1.6 }}>
                 ⚠ For educational purposes only. Consult a certified financial advisor for professional advice.
