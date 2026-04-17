@@ -18,6 +18,9 @@ const c = {
 const postModules = {
   "personalized-bridal-shower-game": lazy(() => import("./posts/personalized-bridal-shower-game.jsx")),
   "how-well-do-you-know-the-bride-questions": lazy(() => import("./posts/how-well-do-you-know-the-bride-questions.jsx")),
+  "best-bridal-shower-games-large-groups": lazy(() => import("./posts/best-bridal-shower-games-large-groups.jsx")),
+  "baby-shower-games-everyone-will-love": lazy(() => import("./posts/baby-shower-games-everyone-will-love.jsx")),
+  "bridal-shower-on-a-budget": lazy(() => import("./posts/bridal-shower-on-a-budget.jsx")),
 };
 
 const postMetas = {
@@ -30,6 +33,21 @@ const postMetas = {
     title: "50 'How Well Do You Know the Bride' Questions That Actually Work",
     description: "Skip the generic questions. Here are 50 personalized, funny, and memorable questions for your bridal shower trivia game.",
     date: "2026-04-05",
+  },
+  "best-bridal-shower-games-large-groups": {
+    title: "Best Bridal Shower Games for Large Groups (That Actually Work)",
+    description: "Planning a bridal shower with 20, 30, or 50+ guests? Here are the games that keep everyone engaged no matter how big the crowd.",
+    date: "2026-04-10",
+  },
+  "baby-shower-games-everyone-will-love": {
+    title: "Baby Shower Games Everyone Will Actually Love (No Diaper Sniffing Required)",
+    description: "Skip the gross baby shower games. Here are fun, inclusive games that work for every guest — including the ones who've never been to a baby shower before.",
+    date: "2026-04-12",
+  },
+  "bridal-shower-on-a-budget": {
+    title: "How to Plan a Bridal Shower on a Budget Without It Looking Like One",
+    description: "You don't need to spend hundreds of dollars to throw a bridal shower that feels special. Here's how to do it right without breaking the bank.",
+    date: "2026-04-14",
   },
 };
 
