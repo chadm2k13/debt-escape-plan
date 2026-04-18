@@ -21,6 +21,9 @@ const postModules = {
   "best-bridal-shower-games-large-groups": lazy(() => import("./posts/best-bridal-shower-games-large-groups.jsx")),
   "baby-shower-games-everyone-will-love": lazy(() => import("./posts/baby-shower-games-everyone-will-love.jsx")),
   "bridal-shower-on-a-budget": lazy(() => import("./posts/bridal-shower-on-a-budget.jsx")),
+  "baby-shower-trivia-questions": lazy(() => import("./posts/baby-shower-trivia-questions.jsx")),
+  "bachelorette-party-games-not-cringe": lazy(() => import("./posts/bachelorette-party-games-not-cringe.jsx")),
+  "bridal-shower-games-small-groups": lazy(() => import("./posts/bridal-shower-games-small-groups.jsx")),
 };
 
 const postMetas = {
@@ -48,6 +51,21 @@ const postMetas = {
     title: "How to Plan a Bridal Shower on a Budget Without It Looking Like One",
     description: "You don't need to spend hundreds of dollars to throw a bridal shower that feels special. Here's how to do it right without breaking the bank.",
     date: "2026-04-14",
+  },
+  "baby-shower-trivia-questions": {
+    title: "50 Baby Shower Trivia Questions That Will Actually Stump Your Guests",
+    description: "Generic baby shower trivia is boring. Here are 50 questions about pregnancy, parenting, and the mom-to-be that will have your guests genuinely stumped and laughing.",
+    date: "2026-04-17",
+  },
+  "bachelorette-party-games-not-cringe": {
+    title: "Bachelorette Party Games That Aren't Cringe (Your Group Will Actually Enjoy)",
+    description: "Skip the embarrassing bachelorette party games nobody actually wants to play. Here are fun, memorable alternatives that work for every type of group.",
+    date: "2026-04-17",
+  },
+  "bridal-shower-games-small-groups": {
+    title: "Bridal Shower Game Ideas for Small Groups (10 People or Fewer)",
+    description: "Small bridal showers need different games than large ones. Here are the best options for intimate gatherings where everyone knows each other well.",
+    date: "2026-04-17",
   },
 };
 
