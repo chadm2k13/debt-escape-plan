@@ -151,6 +151,9 @@ Rules:
 
       {/* Top bar */}
       <div style={{ height: 4, background: `linear-gradient(90deg, ${c.accentDark}, ${c.accent}, #e8a0bb, ${c.gold})` }} />
+<div style={{ background: c.card, borderBottom: `1px solid ${c.border}`, padding: "12px 22px", textAlign: "right" }} className="no-print">
+  <a href="/blog" style={{ color: c.accent, fontSize: 14, textDecoration: "none", fontFamily: "'Georgia', serif", fontWeight: 600 }}>📝 Party Planning Blog →</a>
+</div>
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 22px 80px" }}>
 
